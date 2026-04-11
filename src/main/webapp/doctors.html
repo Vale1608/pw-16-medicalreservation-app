@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Reservation - Doctors</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="topbar">
+    <h2>Medical Reservation</h2>
+    <div class="topbar-actions">
+        <a class="nav-link-button" href="appointments.html">My Appointments</a>
+        <button onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="content-container">
+    <div class="page-header">
+        <h1>Doctors and Specializations</h1>
+        <p>Select a specialization, choose a doctor, and book an appointment.</p>
+    </div>
+
+    <div class="filter-panel">
+        <div class="form-group">
+            <label for="specializationSelect">Filter by specialization</label>
+            <select id="specializationSelect">
+                <option value="">All specializations</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="doctorMessage"></div>
+
+    <div id="doctorsContainer" class="card-grid"></div>
+</div>
+
+<div id="bookingModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Book Appointment</h3>
+            <button class="close-button" id="closeModalButton" type="button">&times;</button>
+        </div>
+
+        <form id="bookingForm">
+            <input type="hidden" id="doctorId">
+
+            <div class="form-group">
+                <label for="doctorName">Selected doctor</label>
+                <input type="text" id="doctorName" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="appointmentDate">Appointment date</label>
+                <input type="date" id="appointmentDate" required>
+            </div>
+
+            <div class="form-group">
+                <label for="appointmentTime">Appointment time</label>
+                <input type="time" id="appointmentTime" required>
+            </div>
+
+            <div class="form-group">
+                <label for="appointmentNotes">Notes</label>
+                <textarea id="appointmentNotes" rows="4" placeholder="Optional notes"></textarea>
+            </div>
+
+            <button type="submit">Confirm Appointment</button>
+        </form>
+
+        <div id="bookingMessage"></div>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/doctors.js"></script>
+</body>
+</html>

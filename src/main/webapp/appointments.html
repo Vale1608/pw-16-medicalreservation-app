@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Reservation - Appointments</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="topbar">
+    <h2>Medical Reservation</h2>
+    <div class="topbar-actions">
+        <a class="nav-link-button" href="doctors.html">Doctors</a>
+        <button onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="content-container">
+    <div class="page-header">
+        <h1>My Appointments</h1>
+        <p>Here you can view and cancel your appointments.</p>
+    </div>
+
+    <div id="appointmentsMessage"></div>
+    <div id="appointmentsContainer"></div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/appointments.js"></script>
+</body>
+</html>
