@@ -135,62 +135,79 @@ function closeBookingModal() {
 }
 
 async function createAppointment() {
-    const doctorId = document.getElementById("doctorId").value;
-    const appointmentDate = document.getElementById("appointmentDate").value;
-    const appointmentTime = document.getElementById("appointmentTime").value;
-    const appointmentNotes = document.getElementById("appointmentNotes").value.trim();
+  const doctorId = document.getElementById("doctorId").value;
+  const appointmentDate = document.getElementById("appointmentDate").value;
+  const appointmentTime = document.getElementById("appointmentTime").value;
+  const appointmentNotes = document.getElementById("appointmentNotes").value.trim();
 
-    if (!doctorId || !appointmentDate || !appointmentTime) {
-        showMessage("bookingMessage", "Date and time are required.", true);
-        return;
+  if (!doctorId || !appointmentDate || !appointmentTime) {
+    showMessage("bookingMessage", "Date and time are required.", true);
+    return;
+  }
+
+  const selectedDate = new Date(`${appointmentDate}T00:00:00`);
+  const day = selectedDate.getDay(); // 0 domenica, 6 sabato
+
+  if (day === 0 || day === 6) {
+    showMessage("bookingMessage", "Appointments are available only from Monday to Friday.", true);
+    return;
+  }
+
+  const allowedSlots = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
+  if (!allowedSlots.includes(appointmentTime)) {
+    showMessage("bookingMessage", "Please select a valid one-hour slot.", true);
+    return;
+  }
+
+  try {
+    const patientResponse = await fetch(`${API_BASE_URL}/patients/me`, {
+      method: "GET",
+      headers: getAuthHeaders()
+    });
+
+    const patientData = await patientResponse.json();
+
+    if (!patientResponse.ok) {
+      showMessage(
+        "bookingMessage",
+        patientData.message || "Unable to identify the authenticated patient.",
+        true
+      );
+      return;
     }
 
-    try {
-        const patientResponse = await fetch(`${API_BASE_URL}/patients/me`, {
-            method: "GET",
-            headers: getAuthHeaders()
-        });
+    const appointmentPayload = {
+      appointmentDate: appointmentDate,
+      appointmentTime: `${appointmentTime}:00`,
+      status: "BOOKED",
+      notes: appointmentNotes,
+      patient: {
+        patientId: patientData.patientId
+      },
+      doctor: {
+        doctorId: Number(doctorId)
+      }
+    };
 
-        const patientData = await patientResponse.json();
+    const response = await fetch(`${API_BASE_URL}/appointments`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(appointmentPayload)
+    });
 
-        if (!patientResponse.ok) {
-            showMessage("bookingMessage", patientData.message || "Unable to identify the authenticated patient.", true);
-            return;
-        }
+    const data = await response.json();
 
-        const appointmentPayload = {
-            appointmentDate: appointmentDate,
-            appointmentTime: `${appointmentTime}:00`,
-            status: "BOOKED",
-            notes: appointmentNotes,
-            patient: {
-                patientId: patientData.patientId
-            },
-            doctor: {
-                doctorId: Number(doctorId)
-            }
-        };
-
-        const response = await fetch(`${API_BASE_URL}/appointments`, {
-            method: "POST",
-            headers: getAuthHeaders(),
-            body: JSON.stringify(appointmentPayload)
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            showMessage("bookingMessage", data.message || "Unable to create appointment.", true);
-            return;
-        }
-
-        showMessage("bookingMessage", "Appointment created successfully.");
-
-        setTimeout(() => {
-            window.location.href = "appointments.html";
-        }, 1000);
-
-    } catch (error) {
-        showMessage("bookingMessage", "Unable to connect to the server.", true);
+    if (!response.ok) {
+      showMessage("bookingMessage", data.message || "Unable to create appointment.", true);
+      return;
     }
+
+    showMessage("bookingMessage", "Appointment created successfully.");
+    setTimeout(() => {
+      window.location.href = "appointments.html";
+    }, 1000);
+
+  } catch (error) {
+    showMessage("bookingMessage", "Unable to connect to the server.", true);
+  }
 }

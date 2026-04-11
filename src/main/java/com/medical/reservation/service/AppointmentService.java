@@ -8,6 +8,9 @@ import com.medical.reservation.repository.AppointmentRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.Set;
 import java.util.List;
 
 @Service
@@ -17,6 +20,41 @@ public class AppointmentService {
     private final PatientService patientService;
     private final DoctorService doctorService;
     private final CurrentUserService currentUserService;
+
+    private static final Set<LocalTime> ALLOWED_SLOTS = Set.of(
+            LocalTime.of(9, 0),
+            LocalTime.of(10, 0),
+            LocalTime.of(11, 0),
+            LocalTime.of(12, 0),
+            LocalTime.of(14, 0),
+            LocalTime.of(15, 0),
+            LocalTime.of(16, 0),
+            LocalTime.of(17, 0)
+    );
+
+    private void validateBusinessRules(Appointment appointment) {
+        LocalDate date = appointment.getAppointmentDate();
+        LocalTime time = appointment.getAppointmentTime();
+
+        if (date.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Appointments cannot be booked in the past.");
+        }
+
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+            throw new IllegalArgumentException("Appointments are available only from Monday to Friday.");
+        }
+
+        if (time.getMinute() != 0 || time.getSecond() != 0) {
+            throw new IllegalArgumentException("Appointments can only start on the hour.");
+        }
+
+        if (!ALLOWED_SLOTS.contains(time)) {
+            throw new IllegalArgumentException(
+                    "Appointments are available only during working hours: 09:00-13:00 and 14:00-18:00."
+            );
+        }
+    }
 
     public AppointmentService(AppointmentRepository appointmentRepository,
                               PatientService patientService,
@@ -88,9 +126,15 @@ public class AppointmentService {
     }
 
     public Appointment createAppointment(Appointment appointment) {
-        if (appointment.getPatient() == null || appointment.getPatient().getPatientId() == null) {
-            throw new IllegalArgumentException("Patient is required.");
+        if (appointment.getAppointmentDate() == null) {
+            throw new IllegalArgumentException("Appointment date is required.");
         }
+
+        if (appointment.getAppointmentTime() == null) {
+            throw new IllegalArgumentException("Appointment time is required.");
+        }
+
+        validateBusinessRules(appointment);
 
         if (appointment.getDoctor() == null || appointment.getDoctor().getDoctorId() == null) {
             throw new IllegalArgumentException("Doctor is required.");
