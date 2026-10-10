@@ -1,3 +1,5 @@
+let specializations = [];
+
 document.addEventListener("DOMContentLoaded", async () => {
     requireAuth();
 
@@ -31,13 +33,28 @@ async function loadSpecializations() {
         const data = await response.json();
 
         if (!response.ok) {
-            showMessage("doctorMessage", data.message || "Unable to load specializations.", true);
+            showMessage(
+                "doctorMessage",
+                data.message || "Unable to load specializations.",
+                true
+            );
             return;
         }
 
+        if (!Array.isArray(data)) {
+            showMessage("doctorMessage", "Invalid specializations response.", true);
+            return;
+        }
+
+        // Salviamo le specializzazioni recuperate dal backend
+        specializations = data;
+
         const specializationSelect = document.getElementById("specializationSelect");
 
-        data.forEach((specialization) => {
+        // Manteniamo l'opzione iniziale
+        specializationSelect.innerHTML = '<option value="">All specializations</option>';
+
+        specializations.forEach((specialization) => {
             const option = document.createElement("option");
             option.value = specialization.specializationId;
             option.textContent = specialization.name;
@@ -45,7 +62,8 @@ async function loadSpecializations() {
         });
 
     } catch (error) {
-        showMessage("doctorMessage", "Unable to connect to the server.", true);
+        showMessage("doctorMessage", "Unable to load specializations.", true);
+        console.error("Specializations loading error:", error);
     }
 }
 
@@ -85,8 +103,12 @@ async function loadDoctors(specializationId = "") {
             const card = document.createElement("div");
             card.className = "doctor-card";
 
-            const specializationName = doctor.specialization
-                ? doctor.specialization.name
+            const doctorSpecialization = specializations.find(spec =>
+                spec.doctors?.some(d => d.doctorId === doctor.doctorId)
+            );
+
+            const specializationName = doctorSpecialization
+                ? doctorSpecialization.name
                 : "N/A";
 
             card.innerHTML = `
